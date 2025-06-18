@@ -1,0 +1,273 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="app-logo">
+          <i class="fas fa-clipboard-list"></i>
+          <h1>Smart Task Manager</h1>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="user-menu">
+          <span class="welcome-text">Welcome, {{ currentUser?.username || 'Monika kashyap' }}</span>
+          <div class="user-avatar">
+            <span>{{ getUserInitials() }}</span>
+          </div>
+          <button class="logout-btn" (click)="logout()" title="Logout">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Message Alert -->
+  <div *ngIf="message" class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    {{ message }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner-large"></div>
+    <p>Loading dashboard...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading" class="dashboard-content">
+    <div class="main-layout">
+      <!-- Left Sidebar - Filters & Search -->
+      <div class="sidebar">
+        <div class="filter-card">
+          <h3>Filters & Search</h3>
+          
+          <div class="search-section">
+            <div class="search-input-wrapper">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Search tasks..." [(ngModel)]="searchTerm" (input)="onSearchChange()">
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <label>Status</label>
+            <select [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+              <option value="">All Status</option>
+              <option value="todo">To Do</option>
+              <option value="progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+
+          <div class="filter-section">
+            <label>Priority</label>
+            <select [(ngModel)]="selectedPriority" (change)="onFilterChange()">
+              <option value="">All Priorities</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div class="filter-section">
+            <label>Due Date</label>
+            <input type="date" [(ngModel)]="selectedDueDate" (change)="onFilterChange()">
+          </div>
+
+          <div class="filter-section">
+            <label>Sort By</label>
+            <select [(ngModel)]="sortBy" (change)="onSortChange()">
+              <option value="dueDate">Due Date</option>
+              <option value="priority">Priority</option>
+              <option value="status">Status</option>
+              <option value="title">Title</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content - Task Board -->
+      <div class="main-content">
+        <div class="task-board-header">
+          <h2>Task Board</h2>
+          <button class="add-task-btn" (click)="openAddTaskModal()">
+            <i class="fas fa-plus"></i>
+            Add New Task
+          </button>
+        </div>
+
+        <div class="task-columns">
+          <!-- To Do Column -->
+          <div class="task-column todo-column">
+            <div class="column-header">
+              <div class="column-title">
+                <i class="fas fa-circle todo-icon"></i>
+                <span>To Do</span>
+                <span class="task-count">{{ getTaskCountByStatus('todo') }}</span>
+              </div>
+            </div>
+            <div class="task-list">
+              <div *ngFor="let task of getTasksByStatus('todo')" class="task-card" [class]="'priority-' + task.priority">
+                <div class="task-header">
+                  <h4>{{ task.title }}</h4>
+                  <div class="task-priority" [class]="'priority-' + task.priority">
+                    {{ task.priority.toUpperCase() }}
+                  </div>
+                </div>
+                <p class="task-description">{{ task.description }}</p>
+                <div class="task-footer">
+                  <span class="task-date">Due: {{ formatDate(task.dueDate) }}</span>
+                  <div class="task-actions">
+                    <button (click)="editTask(task)" title="Edit">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button (click)="deleteTask(task.id)" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- In Progress Column -->
+          <div class="task-column progress-column">
+            <div class="column-header">
+              <div class="column-title">
+                <i class="fas fa-circle progress-icon"></i>
+                <span>In Progress</span>
+                <span class="task-count">{{ getTaskCountByStatus('progress') }}</span>
+              </div>
+            </div>
+            <div class="task-list">
+              <div *ngFor="let task of getTasksByStatus('progress')" class="task-card" [class]="'priority-' + task.priority">
+                <div class="task-header">
+                  <h4>{{ task.title }}</h4>
+                  <div class="task-priority" [class]="'priority-' + task.priority">
+                    {{ task.priority.toUpperCase() }}
+                  </div>
+                </div>
+                <p class="task-description">{{ task.description }}</p>
+                <div class="task-footer">
+                  <span class="task-date">Due: {{ formatDate(task.dueDate) }}</span>
+                  <div class="task-actions">
+                    <button (click)="editTask(task)" title="Edit">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button (click)="deleteTask(task.id)" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Done Column -->
+          <div class="task-column done-column">
+            <div class="column-header">
+              <div class="column-title">
+                <i class="fas fa-check-circle done-icon"></i>
+                <span>Done</span>
+                <span class="task-count">{{ getTaskCountByStatus('done') }}</span>
+              </div>
+            </div>
+            <div class="task-list">
+              <div *ngFor="let task of getTasksByStatus('done')" class="task-card completed" [class]="'priority-' + task.priority">
+                <div class="task-header">
+                  <h4>{{ task.title }}</h4>
+                  <div class="task-priority" [class]="'priority-' + task.priority">
+                    {{ task.priority.toUpperCase() }}
+                  </div>
+                </div>
+                <p class="task-description">{{ task.description }}</p>
+                <div class="task-footer">
+                  <!-- <span class="task-date completed-date">Completed: {{ formatDate(task.completedDate) }}</span> -->
+                  <div class="task-actions">
+                    <button (click)="editTask(task)" title="Edit">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button (click)="deleteTask(task.id)" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div *ngIf="showAddTaskModal" class="modal-overlay" (click)="closeAddTaskModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingTask ? 'Edit Task' : 'Add New Task' }}</h3>
+      <button class="close-btn" (click)="closeAddTaskModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form (ngSubmit)="saveTask()" #taskForm="ngForm">
+      <div class="form-group">
+        <label for="taskTitle">Title</label>
+        <input 
+          type="text" 
+          id="taskTitle" 
+          [(ngModel)]="newTask.title" 
+          name="title" 
+          required 
+          placeholder="Enter task title">
+      </div>
+      
+      <div class="form-group">
+        <label for="taskDescription">Description</label>
+        <textarea 
+          id="taskDescription" 
+          [(ngModel)]="newTask.description" 
+          name="description" 
+          rows="3" 
+          placeholder="Enter task description"></textarea>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="taskStatus">Status</label>
+          <select id="taskStatus" [(ngModel)]="newTask.status" name="status" required>
+            <option value="todo">To Do</option>
+            <option value="progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="taskPriority">Priority</label>
+          <select id="taskPriority" [(ngModel)]="newTask.priority" name="priority" required>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="taskDueDate">Due Date</label>
+        <input 
+          type="date" 
+          id="taskDueDate" 
+          [(ngModel)]="newTask.dueDate" 
+          name="dueDate" 
+          required>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeAddTaskModal()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="!taskForm.form.valid">
+          {{ editingTask ? 'Update' : 'Add' }} Task
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

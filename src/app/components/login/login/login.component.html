@@ -1,0 +1,104 @@
+<!-- src/app/components/login/login.component.html -->
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h2>Welcome Back</h2>
+      <p>Sign in to your account</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope"></i>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="form-control"
+            [class.is-invalid]="hasError('email', 'required') || hasError('email', 'email')"
+            placeholder="Enter your email"
+            autocomplete="email"
+          />
+        </div>
+        <div *ngIf="getFieldError('email')" class="invalid-feedback">
+          {{ getFieldError('email') }}
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock"></i>
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            class="form-control"
+            [class.is-invalid]="hasError('password', 'required') || hasError('password', 'minlength')"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          >
+            <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+        <div *ngIf="getFieldError('password')" class="invalid-feedback">
+          {{ getFieldError('password') }}
+        </div>
+      </div>
+
+      <!-- Remember Me -->
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="rememberMe"
+            class="checkbox"
+          />
+          <span class="checkmark"></span>
+          Remember me
+        </label>
+      </div>
+
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        {{ successMessage }}
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        {{ error }}
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="loading"
+      >
+        <span *ngIf="loading" class="spinner"></span>
+        <i *ngIf="!loading" class="fas fa-sign-in-alt"></i>
+        {{ loading ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </form>
+
+    <!-- Register Link -->
+    <div class="login-footer">
+      <p>Don't have an account? <a routerLink="/register">Create one here</a></p>
+      <p><a routerLink="/forgot-password">Forgot your password?</a></p>
+    </div>
+  </div>
+</div>
